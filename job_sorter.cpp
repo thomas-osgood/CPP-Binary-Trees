@@ -250,7 +250,7 @@ Return(s):
 */
 node* btree::search_job(node* leaf, unsigned int year, unsigned int jno) {
     if (leaf != NULL) {
-        if ((leaf->year == year) && (leaf->job_number = jno)) return leaf;
+        if ((leaf->year == year) && (leaf->job_number == jno)) return leaf;
         else if (year < leaf->year) return search_job(leaf->left, year, jno);
         else if (year > leaf->year) return search_job(leaf->right, year, jno);
         else if (jno < leaf->job_number) return search_job(leaf->left, year, jno);
