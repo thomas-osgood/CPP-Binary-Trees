@@ -182,7 +182,8 @@ void btree::print_ascending(node *leaf) {
     if (leaf->left != NULL) print_ascending(leaf->left);
     std::locale loc(""); // Set LOCALE For $$ Formatting
     std::cout.imbue(loc); // Set COUT To Format Longer #s Like $$
-    std::cout << "JOB: " << leaf->year << "-";
+    std::cout << "JOB: ";
+    std::cout << std::setfill('0') << std::setw(2) << leaf->year << "-";
     std::cout << std::setfill('0') << std::setw(3) << leaf->job_number << std::endl;
     printChar('-',14);
     std::cout << "\tEstimate: " << leaf->job_estimate << std::endl;
@@ -225,7 +226,8 @@ void btree::print_descending(node *leaf) {
     if (leaf->right != NULL) print_ascending(leaf->right);
     std::locale loc(""); // Set LOCALE For $$ Formatting
     std::cout.imbue(loc); // Set COUT To Format Longer #s Like $$
-    std::cout << "JOB: " << leaf->year << "-";
+    std::cout << "JOB: ";
+    std::cout << std::setfill('0') << std::setw(2) << leaf->year << "-";
     std::cout << std::setfill('0') << std::setw(3) << leaf->job_number << std::endl;
     printChar('-',14);
     std::cout << "\tEstimate: " << leaf->job_estimate << std::endl;
@@ -443,6 +445,8 @@ Return(s):
 */
 int main() {
     btree *my_jobs = new btree;
+    node* oldest = NULL;
+    node* newest = NULL;
     
     // ---------- POPULATE JOB TREE ----------
     my_jobs->new_job(12,001,15000,32000);
@@ -451,9 +455,27 @@ int main() {
     my_jobs->new_job(10,006,400,400);
     my_jobs->new_job(11,035,250000,262000);
     my_jobs->new_job(21,007,18000,22000);
+    my_jobs->new_job(21,004,0,19000);
+    my_jobs->new_job(21,002);
     
     // ---------- DISPLAY JOB TREE ----------
     my_jobs->print_ascending();
+    
+    // ---------- DISPLAY OLDEST JOB ----------
+    oldest = my_jobs->search_oldest();
+    if (oldest != NULL) {
+        std::cout << "Oldest Job: " << oldest->year << "-";
+        std::cout << std::setfill('0') << std::setw(3) << oldest->job_number;
+        std::cout << std::endl;
+    }
+    
+    // ---------- DISPLAY NEWEST JOB ----------
+    newest = my_jobs->search_newest();
+    if (oldest != NULL) {
+        std::cout << "Newest Job: " << newest->year << "-";
+        std::cout << std::setfill('0') << std::setw(3) << newest->job_number;
+        std::cout << std::endl;
+    }
     
     // ---------- DELETE JOB TREE ----------
     delete my_jobs;
