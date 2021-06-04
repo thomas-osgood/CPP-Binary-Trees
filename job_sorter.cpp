@@ -18,6 +18,7 @@ class btree {
 public:
     btree();
     ~btree();
+    void delete_job(unsigned int year, unsigned int jno);
     void destroy_tree();
     void new_job(unsigned int year, unsigned int job_number, float job_cost = 0.0, float job_estimate = 0.0);
     void print_ascending();
@@ -27,6 +28,7 @@ public:
     node* search_oldest();
     
 private:
+    node* delete_job(node *leaf, unsigned int year, unsigned int jno);
     void destroy_tree(node *leaf);
     void new_job(node* leaf, unsigned int year, unsigned int job_number, float job_cost, float job_estimate);
     void print_ascending(node *leaf);
@@ -72,6 +74,53 @@ btree::~btree() {
 }
 
 // --------- PRIVATE Class Functions --------------
+
+/*
+Function Name: delete_job
+Description:
+    Private BTREE function to delete a job node.
+Input(s):
+    leaf - node pointer. node to delete.
+    year - unsigned int. job year.
+    jno - unsigned int. job number.
+Return(s):
+    leaf - node pointer. new link for tree.
+    NULL - nothing. end of tree.
+*/
+node* btree::delete_job(node* leaf, unsigned int year, unsigned int jno) {
+    if (leaf == NULL) return NULL;
+    else if (year < leaf->year) leaf->left = delete_job(leaf->left,year,jno);
+    else if (year > leaf->year) leaf->right = delete_job(leaf->right,year,jno);
+    else {
+        if (jno < leaf->job_number) leaf->left = delete_job(leaf->left,year,jno);
+        else if (jno > leaf->job_number) leaf->right = delete_job(leaf->right,year,jno);
+        else {
+            if ((leaf->left == NULL) && (leaf->right == NULL)) {
+                delete leaf;
+                return NULL;
+            } else if (leaf->left == NULL) {
+                node* temp = NULL;
+                temp = leaf->right;
+                delete leaf;
+                return temp;
+            } else if (leaf->right == NULL) {
+                node* temp = NULL;
+                temp = leaf->left;
+                delete leaf;
+                return temp;
+            } else { // two children
+                node* temp = NULL;
+                temp = search_oldest(leaf->right);
+                leaf->year = temp->year;
+                leaf->job_number = temp->job_number;
+                leaf->job_cost = temp->job_cost;
+                leaf->job_estimate = temp->job_estimate;
+                leaf->right = delete_job(leaf->right,temp->year,temp->job_number);
+            }
+        }
+    }
+    return leaf;
+}
 
 /*
 Function Name: destroy_tree
@@ -159,7 +208,7 @@ void btree::new_job(node* leaf, unsigned int year, unsigned int job_number, floa
                 leaf->right->right = NULL;
             }
         } else {
-            std::cout << "[!] JOB " << year << "-" << job_number << " Already Exists." << std::endl;
+            std::cout << "\033[33m[!] JOB " << year << "-" << job_number << " Already Exists.\033[0m" << std::endl;
             return;
         }
     }
@@ -303,6 +352,32 @@ node* btree::search_oldest(node *leaf) {
 // --------- PUBLIC Class Functions --------------
 
 /*
+Function Name: delete_job
+Description:
+    Public BTREE function to delete a job node.
+Input(s):
+    year - unsigned int. job year.
+    jno - unsigned int. job number.
+Return(s):
+    None
+*/
+void btree::delete_job(unsigned int year, unsigned int jno) {
+    if (root == NULL) {
+        std::cout << "[*] Tree Empty. Nothing To Delete." << std::endl;
+        return;
+    }
+    
+    if (search_job(year,jno) == NULL) {
+        std::cout << "\033[31mJob: " << year << "-";
+        std::cout << std::setfill('0') << std::setw(3) << jno;
+        std::cout << " Not Found.\033[0m" << std::endl;
+        return;
+    }
+    delete_job(root, year, jno);
+    return;
+}
+
+/*
 Function Name: destroy_tree
 Description:
     Public BTREE function to destroy the binary tree.
@@ -355,7 +430,7 @@ Return(s):
 */
 void btree::print_ascending() {
     if (root != NULL) print_ascending(root);
-    else std::cout << "[!] No Jobs To Display" << std::endl;
+    else std::cout << "\033[31m[!] No Jobs To Display\033[0m" << std::endl;
 }
 
 /*
@@ -371,7 +446,7 @@ Return(s):
 */
 void btree::print_descending() {
     if (root != NULL) print_descending(root);
-    else std::cout << "[!] No Jobs To Display" << std::endl;
+    else std::cout << "\033[31m[!] No Jobs To Display\033[0m" << std::endl;
 }
 
 /*
@@ -390,7 +465,7 @@ node* btree::search_job(unsigned int year, unsigned int jno) {
 if (root != NULL) {
         return search_job(root, year, jno);
     } else {
-        std::cout << "[!] No Jobs To Search" << std::endl;
+        std::cout << "\033[31m[!] No Jobs To Search\033[0m" << std::endl;
         return NULL;
     }
 }
@@ -408,7 +483,7 @@ Return(s):
 node* btree::search_newest() {
     if (root != NULL) return search_newest(root);
     else {
-        std::cout << "[!] No Jobs To Search" << std::endl;
+        std::cout << "\033[31m[!] No Jobs To Search\033[0m" << std::endl;
         return NULL;
     }
 }
@@ -477,7 +552,25 @@ int main() {
         std::cout << std::endl;
     }
     
-    // ---------- DELETE JOB TREE ----------
+    for (int i = 0; i < 40; i++) std::cout << "-";
+    std::cout << std::endl;
+    
+    // ---------- DELETE JOB ----------
+    my_jobs->delete_job(10,005);
+    my_jobs->delete_job(21,004);
+    my_jobs->delete_job(10,003);
+    my_jobs->print_ascending();
+    
+    oldest = my_jobs->search_oldest();
+    if (oldest != NULL) {
+        std::cout << "Oldest Job: " << oldest->year << "-";
+        std::cout << std::setfill('0') << std::setw(3) << oldest->job_number;
+        std::cout << std::endl;
+    }
+    
+    // ---------- DELETE JOB TREE & LOCAL NODES ----------
+    delete oldest;
+    delete newest;
     delete my_jobs;
     
     return 0;
